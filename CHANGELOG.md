@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-16: Deploy on Railway button
+
+- README: added the Deploy on Railway button for the published template (`steel-browser-2`). No change to the deployed service.
+
 ## 2026-11-16: Steel Browser v0.5.5-beta
 
 - First release of the template: Steel Browser v0.5.5-beta (`ghcr.io/steel-dev/steel-browser@sha256:b5bd99de…`, built from upstream commit `9fb9b92`).

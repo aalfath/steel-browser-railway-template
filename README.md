@@ -1,5 +1,7 @@
 # Steel Browser on Railway
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/steel-browser-2?utm_medium=integration&utm_source=button&utm_campaign=steel-browser)
+
 Railway template for [Steel Browser](https://github.com/steel-dev/steel-browser), the open-source browser API for AI agents and automation: Chrome sessions you drive over CDP (Puppeteer, Playwright, Selenium), plus quick actions (scrape, screenshot, PDF) and a web UI for watching sessions live.
 
 This repo wraps the official image with a small API-key gate, because Steel Browser has no authentication of its own and a public instance would otherwise be an open browser and proxy for anyone.
