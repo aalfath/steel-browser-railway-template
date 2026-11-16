@@ -13,8 +13,10 @@ if [ "${#STEEL_API_KEY}" -lt 16 ] || ! printf '%s' "$STEEL_API_KEY" | grep -Eq '
 fi
 
 LISTEN_PORT="${PORT:-8080}"
-APP_PORT=3001
-[ "$LISTEN_PORT" = "$APP_PORT" ] && APP_PORT=3002
+# Steel's in-browser recorder extension posts to http://localhost:3000, so the
+# API keeps port 3000 unless the gate itself was put there.
+APP_PORT=3000
+[ "$LISTEN_PORT" = "$APP_PORT" ] && APP_PORT=3001
 
 # Public URLs the API puts in session responses (websocketUrl, debugUrl, ...).
 if [ -z "$DOMAIN" ]; then

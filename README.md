@@ -50,7 +50,7 @@ API reference: `https://YOUR-DOMAIN/documentation`.
 
 ## How it works
 
-- `start.sh` renders `nginx.conf.template`: nginx listens on `PORT`, checks the key, and proxies HTTP and WebSocket traffic to the Steel API on `127.0.0.1:3001`. Chrome's raw DevTools port stays on localhost.
+- `start.sh` renders `nginx.conf.template`: nginx listens on `PORT`, checks the key, and proxies HTTP and WebSocket traffic to the Steel API on `127.0.0.1:3000`. Chrome's raw DevTools port stays on localhost.
 - The public domain and `wss://` URLs in session responses come from Railway's `RAILWAY_PUBLIC_DOMAIN`.
 - One browser runs per instance (Steel Browser's open-source design). For parallel sessions, deploy more instances.
 
