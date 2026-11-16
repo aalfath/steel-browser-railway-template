@@ -1,0 +1,92 @@
+# Rendered by /app/railway/start.sh into /app/api/nginx.conf.
+worker_processes 2;
+pid /tmp/nginx-steel.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    access_log off;
+    client_max_body_size 110m;
+
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      '';
+    }
+
+    # Accepted credentials: "Authorization: Bearer KEY", "steel-api-key: KEY",
+    # "x-api-key: KEY", "?apiKey=KEY" (WebSocket/CDP clients) or HTTP Basic
+    # steel:KEY (the web UI in a browser).
+    map $http_authorization $steel_auth_header {
+        default 0;
+        "Bearer __API_KEY__" 1;
+        "Basic __BASIC__" 1;
+    }
+    map $http_steel_api_key $steel_auth_steel {
+        default 0;
+        "__API_KEY__" 1;
+    }
+    map $http_x_api_key $steel_auth_x {
+        default 0;
+        "__API_KEY__" 1;
+    }
+    map $arg_apikey $steel_auth_arg {
+        default 0;
+        "__API_KEY__" 1;
+    }
+    map "$steel_auth_header$steel_auth_steel$steel_auth_x$steel_auth_arg" $steel_authorized {
+        default 1;
+        "0000" 0;
+    }
+
+    # Upstream's CDP redirect to Chrome's DevTools port, kept on localhost only.
+    server {
+        listen 127.0.0.1:9223;
+        location / {
+            proxy_pass http://127.0.0.1:9222;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            proxy_set_header Host $host;
+            proxy_read_timeout 86400;
+            proxy_send_timeout 86400;
+            proxy_buffering off;
+        }
+    }
+
+    server {
+        listen __LISTEN_PORT__;
+        listen [::]:__LISTEN_PORT__;
+
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_request_buffering off;
+
+        # Health check for Railway, no key needed.
+        location = /v1/health {
+            proxy_pass http://127.0.0.1:__APP_PORT__;
+        }
+
+        location / {
+            error_page 401 = @unauthorized;
+            if ($steel_authorized = 0) {
+                return 401;
+            }
+            proxy_pass http://127.0.0.1:__APP_PORT__;
+        }
+
+        location @unauthorized {
+            default_type application/json;
+            add_header WWW-Authenticate 'Basic realm="Steel Browser", charset="UTF-8"' always;
+            return 401 '{"error":"Unauthorized. Send the STEEL_API_KEY as steel-api-key header, Bearer token or apiKey query parameter; in a browser log in as user steel with the key as password."}\n';
+        }
+    }
+}
