@@ -42,6 +42,12 @@ sed -e "s|__LISTEN_PORT__|$LISTEN_PORT|g" \
     -e "s|__BASIC__|$BASIC|g" \
     /app/railway/nginx.conf.template > /app/api/nginx.conf
 
+# Fail fast on a bad config: upstream's entrypoint ignores nginx start errors.
+if ! nginx -t -q -c /app/api/nginx.conf; then
+  echo "ERROR: generated nginx config is invalid" >&2
+  exit 1
+fi
+
 # The upstream entrypoint starts nginx with /app/api/nginx.conf, then the API.
 export HOST=127.0.0.1
 export PORT="$APP_PORT"
