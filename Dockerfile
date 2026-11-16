@@ -10,6 +10,10 @@ RUN mkdir -p /data /app/railway \
     && ln -s /data/files /files \
     && ln -s /data/user-data-dir /app/api/user-data-dir
 
+# Fix the live viewer (see patch-cast.mjs).
+COPY patch-cast.mjs /app/railway/patch-cast.mjs
+RUN node /app/railway/patch-cast.mjs
+
 COPY --chmod=644 nginx.conf.template /app/railway/nginx.conf.template
 COPY --chmod=755 start.sh /app/railway/start.sh
 
