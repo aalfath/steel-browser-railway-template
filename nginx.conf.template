@@ -16,6 +16,19 @@ http {
         ''      '';
     }
 
+    # Chrome's DevTools endpoint refuses WebSocket handshakes whose Host is not
+    # localhost or an IP, and Steel forwards the CDP handshake with our Host.
+    map $http_upgrade $steel_upstream_host {
+        default    $host;
+        "~*websocket" "127.0.0.1";
+    }
+
+    # Drop apiKey from the query string so the key never reaches Steel's logs.
+    map $args $steel_clean_args {
+        default $args;
+        "~*^(?<pre>.*?)(?:^|&)apikey=[^&]*(?<post>.*)$" "$pre$post";
+    }
+
     # Accepted credentials: "Authorization: Bearer KEY", "steel-api-key: KEY",
     # "x-api-key: KEY", "?apiKey=KEY" (WebSocket/CDP clients) or HTTP Basic
     # steel:KEY (the web UI in a browser).
@@ -61,7 +74,8 @@ http {
         listen [::]:__LISTEN_PORT__;
 
         proxy_http_version 1.1;
-        proxy_set_header Host $host;
+        proxy_set_header Host $steel_upstream_host;
+        proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
         proxy_set_header Upgrade $http_upgrade;
@@ -81,6 +95,7 @@ http {
             if ($steel_authorized = 0) {
                 return 401;
             }
+            set $args $steel_clean_args;
             proxy_pass http://127.0.0.1:__APP_PORT__;
         }
 
